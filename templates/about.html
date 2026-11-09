@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}About & Hackathon Demo Guide - SunoLocal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Banner -->
+  <div class="card card-sunolocal p-4 p-md-5 mb-4 border-0 bg-white shadow-sm text-center">
+    <div class="hero-pill mb-2">
+      <i class="bi bi-award-fill text-warning"></i> INNOVATE Hackathon Submission
+    </div>
+    <h1 class="fw-bold mb-2">SunoLocal: Listen. Understand. Verify. Act.</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 750px;">
+      An AI-powered local opportunity discovery platform built to eliminate the information divide for college students and job seekers across Mysuru, Mandya, and Karnataka.
+    </p>
+    <div class="d-flex justify-content-center gap-2 mt-2">
+      <span class="badge bg-primary-subtle text-primary">Python + Flask</span>
+      <span class="badge bg-success-subtle text-success">SQLite Database</span>
+      <span class="badge bg-warning-subtle text-warning-emphasis">Web Speech Audio</span>
+      <span class="badge bg-info-subtle text-info">TrustCheck Heuristics</span>
+      <span class="badge bg-dark text-white">English + Kannada</span>
+    </div>
+  </div>
+
+  <!-- 3-Minute Demo Script For Hackathon Judges -->
+  <div class="card card-sunolocal p-4 p-md-5 mb-4 border-primary">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <div class="brand-icon" style="width: 36px; height: 36px; font-size: 1.1rem;">
+        <i class="bi bi-stopwatch"></i>
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0 text-primary">Interactive 3-Minute Judge Walkthrough Script</h4>
+        <span class="text-muted small">Follow these 5 steps to test the entire application end-to-end</span>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+      <div class="col-md-4">
+        <div class="p-3 border rounded-3 bg-light h-100">
+          <div class="fw-bold text-primary mb-1">0:00 - 1:00 | Step 1: Personalize</div>
+          <p class="small text-muted mb-2">
+            Click <strong>"Personalize My Feed"</strong> or the top location pill. Set your location to <code>Mysuru</code>, select <code>Skill development</code> & <code>Internships</code>, and choose <code>English</code> or <code>Kannada</code>.
+          </p>
+          <a href="{{ url_for('preferences') }}" class="btn btn-sm btn-outline-primary w-100">Test Preferences &rarr;</a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-3 border rounded-3 bg-light h-100">
+          <div class="fw-bold text-success mb-1">1:00 - 2:00 | Step 2: Discover & Listen</div>
+          <p class="small text-muted mb-2">
+            Notice how the <em>Mysuru District Skill Development Mission (Python Bootcamp)</em> jumps to a <strong>94% Match</strong>! Click <strong>"Listen"</strong> on the card to trigger browser voice narration.
+          </p>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-success w-100">Test Dashboard &rarr;</a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-3 border rounded-3 bg-light h-100">
+          <div class="fw-bold text-danger mb-1">2:00 - 3:00 | Step 3: TrustCheck & Admin</div>
+          <p class="small text-muted mb-2">
+            Open the <em>"Sample WhatsApp Circular: KSRTC"</em> record. See how TrustCheck flags <strong>"Source Missing"</strong> and <strong>"Potentially Outdated"</strong> warnings to protect students. Then open <strong>Admin</strong> to add a new record.
+          </p>
+          <a href="{{ url_for('discovery', trust='outdated') }}" class="btn btn-sm btn-outline-danger w-100">Inspect TrustCheck &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Technical Architecture -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card card-sunolocal p-4 h-100">
+        <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-diagram-3-fill text-primary"></i> System Architecture
+        </h5>
+        <ul class="text-secondary small d-flex flex-column gap-2 mb-0">
+          <li>
+            <strong>Frontend:</strong> Clean responsive HTML5/CSS3 using modern SaaS aesthetics, Bootstrap 5 components, and vanilla JavaScript Web Speech API for zero-latency client-side speech synthesis.
+          </li>
+          <li>
+            <strong>Backend (Flask):</strong> Lightweight, beginner-friendly modular Python backend with dedicated intelligence modules.
+          </li>
+          <li>
+            <strong>Database (SQLite):</strong> Relational schema with <code>users</code>, <code>user_preferences</code>, <code>opportunities</code>, <code>saved_opportunities</code>, and <code>recently_viewed</code> tables utilizing parameterized queries to prevent SQL injection.
+          </li>
+          <li>
+            <strong>Modular Design:</strong> Modules for ranking (<code>recommender.py</code>), summarization (<code>summarizer.py</code>), and TrustCheck (<code>trustcheck.py</code>) are separated from HTTP routing for clean extensibility.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card card-sunolocal p-4 h-100">
+        <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-cpu text-info"></i> Transparent AI & Algorithms
+        </h5>
+        <ul class="text-secondary small d-flex flex-column gap-2 mb-0">
+          <li>
+            <strong>Transparent Recommendation Scoring:</strong>
+            <code>Score = Interest Match (50%) + Geographic Proximity (30%) + Urgency/Timeliness (20%)</code>. Includes human-readable explanations rather than opaque black-box scores.
+          </li>
+          <li>
+            <strong>AI Summarizer with Reliable Fallback:</strong>
+            If an LLM API key (e.g. <code>GEMINI_API_KEY</code>) is provided, calls the generative API. If absent, seamlessly falls back to a deterministic, zero-hallucination rule-based extractive engine that organizes notifications into 6 standardized questions in English and Kannada.
+          </li>
+          <li>
+            <strong>TrustCheck Integrity Engine:</strong>
+            Audits domain extensions (validating official <code>.gov.in</code>, <code>.ac.in</code>, <code>.res.in</code>), flags missing URLs, calculates deadline countdowns, and displays clear warnings.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Diagnostics & Kannada TTS Guide -->
+  <div class="card card-sunolocal p-4 p-md-5 bg-white mb-4 border-warning">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <div class="brand-icon bg-warning text-dark" style="width: 36px; height: 36px; font-size: 1.15rem;">
+          <i class="bi bi-mic-fill"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold mb-0">Web Speech API Voice Engine & Kannada (kn-IN) Guide</h4>
+          <span class="text-muted small">Browser Speech Synthesis Standards • Rule 9 & 10 Compliance</span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#voiceDiagnosticModal">
+        <i class="bi bi-gear-fill me-1"></i> Launch Voice Diagnostics
+      </button>
+    </div>
+
+    <div class="row g-4 text-secondary small">
+      <div class="col-md-4">
+        <h6 class="fw-bold text-dark"><i class="bi bi-check2-circle text-success me-1"></i> Strict Voice Matching</h6>
+        <p>SunoLocal checks available voices using <code>speechSynthesis.getVoices()</code> and handles asynchronous loading via the <code>voiceschanged</code> event. If a native Kannada (<code>kn-IN</code>) voice is not detected on the device, SunoLocal <strong>never silently reads Kannada text using an English voice</strong>, preventing broken silence.</p>
+      </div>
+
+      <div class="col-md-4">
+        <h6 class="fw-bold text-dark"><i class="bi bi-browser-edge text-primary me-1"></i> Best Experience: Microsoft Edge</h6>
+        <p>Microsoft Edge comes with cloud-backed natural neural voices pre-configured for Indian regional languages, including <code>Microsoft Gagan Online (Natural) - Kannada (India)</code> and <code>Microsoft Sapna</code>. Simply opening SunoLocal in Edge provides instant, high-quality Kannada audio out-of-the-box.</p>
+      </div>
+
+      <div class="col-md-4">
+        <h6 class="fw-bold text-dark"><i class="bi bi-windows text-info me-1"></i> Enabling on Windows & Chrome</h6>
+        <p>On Windows 10/11, go to <strong>Settings &rarr; Time & Language &rarr; Language & Region &rarr; Add a language</strong>. Search for <strong>Kannada (ಕನ್ನಡ)</strong> and check the <em>Text-to-speech</em> pack. Once installed, both Chrome and Windows desktop apps gain offline Kannada TTS capabilities.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Impact Section -->
+  <div class="card card-sunolocal p-4 p-md-5 bg-white mb-4">
+    <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
+      <i class="bi bi-heart-fill text-danger"></i> Expected Social Impact for Karnataka
+    </h4>
+    <div class="row g-4 text-secondary small">
+      <div class="col-md-4">
+        <h6 class="fw-bold text-dark">Empowering First-Gen Students</h6>
+        <p>Many students in Mysore, Mandya, and rural Karnataka are first-generation college attendees whose parents cannot help decipher complex official scholarship gazettes. Audio summaries bridge the literacy barrier.</p>
+      </div>
+      <div class="col-md-4">
+        <h6 class="fw-bold text-dark">Combating Scam Forwards</h6>
+        <p>Social media forwards asking for spot registration fees at bus stands or fake recruitment centers trick desperate job seekers. SunoLocal TrustCheck equips students with critical source verification habits.</p>
+      </div>
+      <div class="col-md-4">
+        <h6 class="fw-bold text-dark">Tier-2 Tech Cluster Growth</h6>
+        <p>With Karnataka's "Beyond Bengaluru" initiative growing the Mysuru IT and ESDM cluster, SunoLocal directly connects local students to high-value apprenticeships and skill bootcamps close to home.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

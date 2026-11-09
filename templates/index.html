@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}SunoLocal - Listen. Understand. Verify. Act. | Local Information for All Categories{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-gradient">
+  <div class="container text-center">
+    <div class="hero-pill">
+      <i class="bi bi-stars text-warning"></i>
+      <span>All-Category Discovery Platform • Mysuru & Karnataka Focus • English & ಕನ್ನಡ</span>
+    </div>
+    
+    <h1 class="display-4 fw-extrabold mb-3">
+      Local Opportunities for Everyone.<br>
+      <span class="text-primary">Listen. Understand. Verify. Act.</span>
+    </h1>
+    
+    <p class="lead text-muted mx-auto mb-4" style="max-width: 760px;">
+      Never miss agriculture schemes, sports tournaments, scholarships, jobs, government announcements, or tech competitions. SunoLocal understands any question and delivers detailed, verified audio briefings in English and Kannada.
+    </p>
+
+    <!-- Natural Language Question Search Bar -->
+    <div class="row justify-content-center mb-3">
+      <div class="col-lg-8 col-md-10">
+        <form action="{{ url_for('discovery') }}" method="GET">
+          <div class="search-box-group d-flex align-items-center shadow-sm">
+            <i class="bi bi-search text-muted fs-5 me-2"></i>
+            <input type="text" 
+                   name="q" 
+                   class="search-box-input flex-grow-1" 
+                   placeholder="Ask any question in English or ಕನ್ನಡ (e.g. farmer schemes, cricket tournaments, scholarships, jobs)..."
+                   aria-label="Ask Question">
+            <button type="submit" class="btn btn-primary-custom px-4 ms-2">
+              Discover
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick Question Chips (Directly addressing 7 core questions) -->
+    <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+      <span class="small text-muted align-self-center me-1"><i class="bi bi-lightning-charge-fill text-warning"></i> Quick questions:</span>
+      <a href="{{ url_for('discovery', q='Latest agriculture schemes for Karnataka farmers.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        🌾 Farmer schemes
+      </a>
+      <a href="{{ url_for('discovery', q='Upcoming sports tournaments in Karnataka.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        🏆 Sports & Cricket
+      </a>
+      <a href="{{ url_for('discovery', q='Scholarships for engineering students.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        🎓 Engineering scholarships
+      </a>
+      <a href="{{ url_for('discovery', q='Latest job opportunities in Mysuru.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        💼 Mysuru jobs
+      </a>
+      <a href="{{ url_for('discovery', q='Government announcements in Karnataka.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        🏛️ Govt announcements
+      </a>
+      <a href="{{ url_for('discovery', q='Latest AI and technology news.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        🤖 AI & Tech
+      </a>
+      <a href="{{ url_for('discovery', q='Upcoming student competitions.') }}" class="badge rounded-pill bg-white text-dark border text-decoration-none py-2 px-3">
+        🚀 Student competitions
+      </a>
+      <a href="{{ url_for('discovery', q='ಕರ್ನಾಟಕದ ರೈತರಿಗೆ ಕೃಷಿ ಯೋಜನೆಗಳು') }}" class="badge rounded-pill bg-warning-subtle text-dark border text-decoration-none py-2 px-3" style="font-family: 'Noto Sans Kannada', sans-serif;">
+        🌾 ಕನ್ನಡ: ಕೃಷಿ ಯೋಜನೆಗಳು
+      </a>
+    </div>
+
+    <!-- Quick Action Banner -->
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{{ url_for('preferences') }}" class="btn btn-primary-custom px-4 py-2">
+        <i class="bi bi-sliders me-2"></i> Personalize My Preferences
+      </a>
+      <a href="{{ url_for('discovery') }}" class="btn btn-outline-dark px-4 py-2 rounded-2">
+        <i class="bi bi-compass me-2"></i> Explore All Categories
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Category Discovery Section (All 15 Categories) -->
+<section class="py-5 bg-white border-bottom">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <span class="badge-category text-uppercase">Complete Category Catalog</span>
+        <h2 class="fw-bold mt-1 mb-0">Discover Opportunities Across ALL Categories</h2>
+        <p class="text-muted small mb-0">From agriculture and sports to technology, jobs, and governance in Karnataka</p>
+      </div>
+      <a href="{{ url_for('discovery') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+        View All Records <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-3">
+      {% for cat_name in core_categories %}
+        {% set meta = category_metadata.get(cat_name, {}) %}
+        <div class="col-lg-4 col-md-6">
+          <a href="{{ url_for('discovery', category=cat_name) }}" class="card card-sunolocal p-3 text-decoration-none h-100 border transition-all" style="border-left: 4px solid {{ meta.color or '#0d6efd' }} !important;">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-3 text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: {{ meta.color or '#0d6efd' }}; font-size: 1.25rem;">
+                <i class="bi {{ meta.icon or 'bi-tag-fill' }}"></i>
+              </div>
+              <div class="flex-grow-1 overflow-hidden">
+                <h6 class="fw-bold text-dark mb-0 text-truncate">{{ cat_name }}</h6>
+                <div class="text-muted small text-truncate" style="font-size: 0.8rem; font-family: 'Noto Sans Kannada', sans-serif;">
+                  {{ meta.kannada or '' }}
+                </div>
+                <div class="text-secondary small mt-1 text-truncate" style="font-size: 0.75rem;">
+                  {{ meta.description or '' }}
+                </div>
+              </div>
+              <i class="bi bi-chevron-right text-muted"></i>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- The SunoLocal User Journey -->
+<section class="py-5 bg-light border-bottom">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="badge-category text-uppercase">The Solution Pipeline</span>
+      <h2 class="mt-2 fw-bold">How SunoLocal Empowers Every Citizen</h2>
+      <p class="text-muted">A seamless 6-step human-centered workflow from complex circular to verified action</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="step-card bg-white">
+          <div class="step-icon bg-primary-subtle text-primary">
+            <i class="bi bi-person-gear"></i>
+          </div>
+          <div class="step-number">Step 1</div>
+          <h6 class="fw-bold mb-1">Personalize</h6>
+          <p class="small text-muted mb-0">Set your location (Mysuru), profession, and language.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="step-card bg-white">
+          <div class="step-icon bg-info-subtle text-info">
+            <i class="bi bi-compass"></i>
+          </div>
+          <div class="step-number">Step 2</div>
+          <h6 class="fw-bold mb-1">Discover</h6>
+          <p class="small text-muted mb-0">Type any question in English or Kannada across all categories.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="step-card bg-white">
+          <div class="step-icon bg-success-subtle text-success">
+            <i class="bi bi-cpu"></i>
+          </div>
+          <div class="step-number">Step 3</div>
+          <h6 class="fw-bold mb-1">Understand</h6>
+          <p class="small text-muted mb-0">Clear answers: Who benefits, eligibility, dates, and steps.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="step-card bg-white">
+          <div class="step-icon bg-warning-subtle text-warning">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <div class="step-number">Step 4</div>
+          <h6 class="fw-bold mb-1">Verify</h6>
+          <p class="small text-muted mb-0">TrustCheck audits source domains, dates & authenticity.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="step-card bg-white">
+          <div class="step-icon bg-danger-subtle text-danger">
+            <i class="bi bi-headphones"></i>
+          </div>
+          <div class="step-number">Step 5</div>
+          <h6 class="fw-bold mb-1">Listen</h6>
+          <p class="small text-muted mb-0">High-clarity audio summaries with Play, Pause, Resume, Stop.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="step-card border-primary" style="background: #f8faff;">
+          <div class="step-icon bg-primary text-white">
+            <i class="bi bi-arrow-up-right-circle"></i>
+          </div>
+          <div class="step-number text-primary">Step 6</div>
+          <h6 class="fw-bold mb-1 text-primary">Act</h6>
+          <p class="small text-muted mb-0">Direct links to official portals before actual deadlines.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Recommended Opportunities Section -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <span class="badge-category">Personalized Matches</span>
+        <h2 class="fw-bold mt-1 mb-0">Top Announcements & Opportunities in {{ user_prefs.location }}</h2>
+        <p class="text-muted small mb-0">Ranked by transparent relevance matching your selected preferences</p>
+      </div>
+      <a href="{{ url_for('discovery') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for item in featured %}
+        <div class="col-lg-4 col-md-6">
+          <div class="card card-sunolocal h-100 d-flex flex-column p-3 border shadow-sm">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              {% if item.is_sample == 0 %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.65rem;">
+                  <i class="bi bi-patch-check-fill me-1"></i> VERIFIED OFFICIAL
+                </span>
+              {% else %}
+                <span class="badge-sample">[SAMPLE DATA]</span>
+              {% endif %}
+              <span class="match-score-badge {{ item.match_badge_class }}" title="{{ item.match_explanation }}">
+                <i class="bi bi-stars"></i> {{ item.match_score }}% Match
+              </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge-category">{{ item.category }}</span>
+              <span class="badge-location"><i class="bi bi-geo-alt"></i> {{ item.location }}</span>
+            </div>
+
+            <h5 class="fw-bold mb-1 text-truncate" title="{{ item.title }}">
+              <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="text-decoration-none text-dark">
+                {{ item.title }}
+              </a>
+            </h5>
+
+            <div class="text-muted small mb-2 text-truncate">
+              <i class="bi bi-building me-1 text-primary"></i> {{ item.organization }}
+            </div>
+
+            <p class="small text-muted flex-grow-1 mb-2" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ item.short_description }}
+            </p>
+
+            {% if item.who_can_benefit %}
+              <div class="p-2 mb-2 rounded bg-light border small text-secondary text-truncate" title="{{ item.who_can_benefit }}">
+                <strong><i class="bi bi-people-fill text-primary me-1"></i> Beneficiaries:</strong> {{ item.who_can_benefit }}
+              </div>
+            {% endif %}
+
+            <!-- Deadline Pill -->
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top mb-3 small text-muted">
+              <span>
+                <i class="bi bi-calendar-event me-1 text-danger"></i>
+                Deadline: <strong>{{ item.deadline if item.deadline else 'Open / Ongoing' }}</strong>
+              </span>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="d-flex align-items-center justify-content-between gap-2">
+              <!-- Separate English & Kannada Listen Buttons -->
+              <div class="btn-group btn-group-sm flex-grow-1" role="group">
+                <button class="btn btn-listen btn-listen-trigger" 
+                        data-id="{{ item.id }}" 
+                        data-lang="English"
+                        data-title="{{ item.title }}"
+                        title="Listen in English">
+                  <i class="bi bi-headphones"></i> EN
+                </button>
+                <button class="btn btn-listen btn-listen-trigger" 
+                        data-id="{{ item.id }}" 
+                        data-lang="Kannada"
+                        data-title="{{ item.kannada_title or item.title }}"
+                        title="ಕನ್ನಡದಲ್ಲಿ ಕೇಳಿ (Listen in Kannada)">
+                  <i class="bi bi-volume-up-fill text-warning"></i> ಕನ್ನಡ
+                </button>
+              </div>
+
+              <!-- View Details -->
+              <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="btn btn-sm btn-outline-primary px-3" title="View Detailed Info">
+                <i class="bi bi-file-text me-1"></i> Details
+              </a>
+
+              <!-- Bookmark Toggle -->
+              <button class="btn btn-bookmark btn-bookmark-toggle {{ 'saved' if item.id in saved_ids else '' }}" 
+                      data-id="{{ item.id }}" 
+                      title="Save Opportunity">
+                <i class="bi {{ 'bi-bookmark-fill text-primary' if item.id in saved_ids else 'bi-bookmark' }}"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- The Problem & Solution (Hackathon Highlight) -->
+<section class="py-5 bg-light border-top">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="badge-category text-uppercase">Platform Mission & Integrity</span>
+      <h2 class="mt-2 fw-bold">Why SunoLocal Matters to Mysore & Karnataka</h2>
+      <p class="text-muted">Empowering students, farmers, job seekers, and citizens with verified local information</p>
+    </div>
+
+    <div class="row g-4 align-items-stretch">
+      <div class="col-md-6">
+        <div class="p-4 rounded-3 h-100 border border-danger-subtle bg-danger-subtle bg-opacity-10">
+          <h5 class="text-danger fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill"></i> The Everyday Information Barrier
+          </h5>
+          <ul class="text-secondary small d-flex flex-column gap-3 mb-0">
+            <li>
+              <strong>Information Fragmentation:</strong> Agriculture subsidies, sports trials, scholarship updates, and jobs are scattered across 25+ government portals (SSP, Seva Sindhu, KEA, KSCA, Raita Mitra).
+            </li>
+            <li>
+              <strong>Language & Bureaucratic Jargon:</strong> Gazette notices are dense PDF documents written in administrative jargon that citizens and students struggle to navigate.
+            </li>
+            <li>
+              <strong>Unverified Circulars & Fake Forwards:</strong> Unverified WhatsApp messages mislead citizens with fake application deadlines and unauthorized fees.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="p-4 rounded-3 h-100 border border-success-subtle bg-success-subtle bg-opacity-10">
+          <h5 class="text-success fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill"></i> The SunoLocal Solution
+          </h5>
+          <ul class="text-secondary small d-flex flex-column gap-3 mb-0">
+            <li>
+              <strong>Unified All-Category Discovery:</strong> Search any question across agriculture, sports, education, tech, jobs, health, or weather with intelligent intent understanding.
+            </li>
+            <li>
+              <strong>Voice Accessibility in English & ಕನ್ನಡ:</strong> Complete text-to-speech audio briefings with Play, Pause, Resume, and Stop controls on any device.
+            </li>
+            <li>
+              <strong>TrustCheck Integrity Audit:</strong> Strict source verification, official government domain checks, and clear separation between verified official notices and demonstration records.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

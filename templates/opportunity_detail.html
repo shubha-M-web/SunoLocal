@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block title %}{{ opp.title }} - SunoLocal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumbs & Navigation -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0 small">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('discovery') }}" class="text-decoration-none">Discover</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ opp.category }}</li>
+      </ol>
+    </nav>
+
+    <!-- Language Selector for Detail Page -->
+    <div class="btn-group btn-group-sm">
+      <a href="{{ url_for('opportunity_detail', id=opp.id, lang='English') }}" class="btn {{ 'btn-primary' if current_lang == 'English' else 'btn-outline-secondary' }}">
+        English
+      </a>
+      <a href="{{ url_for('opportunity_detail', id=opp.id, lang='Kannada') }}" class="btn {{ 'btn-primary' if current_lang == 'Kannada' else 'btn-outline-secondary' }}">
+        ಕನ್ನಡ (Kannada)
+      </a>
+    </div>
+  </div>
+
+  <!-- Voice Notice Container (for Kannada voice missing alert) -->
+  <div id="tts-notice-banner" class="alert alert-warning small d-none mb-3 shadow-sm" role="alert"></div>
+
+  <!-- Header Card -->
+  <div class="card card-sunolocal p-4 mb-4 bg-white border-0 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        {% if opp.is_sample == 0 %}
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.75rem;">
+            <i class="bi bi-patch-check-fill me-1"></i> VERIFIED OFFICIAL NOTICE
+          </span>
+        {% else %}
+          <span class="badge-sample">[SAMPLE DATA - DEMO]</span>
+        {% endif %}
+        <span class="badge-category">{{ opp.category }}</span>
+        <span class="badge-location"><i class="bi bi-geo-alt"></i> {{ opp.location }}</span>
+        <span class="trust-badge {{ trust_info.badge_class }}">
+          <i class="bi bi-shield-check"></i> {{ trust_info.status }}
+        </span>
+      </div>
+
+      <!-- Match Score -->
+      <span class="match-score-badge {{ match_info.badge_class }}" title="{{ match_info.explanation }}">
+        <i class="bi bi-stars"></i> {{ match_info.score }}% Match for Your Profile
+      </span>
+    </div>
+
+    <h2 class="fw-bold mb-2 text-dark">{{ opp.title }}</h2>
+
+    {% if opp.kannada_title and current_lang == 'Kannada' %}
+      <h4 class="text-secondary mb-2" style="font-family: 'Noto Sans Kannada', sans-serif;">
+        {{ opp.kannada_title }}
+      </h4>
+    {% endif %}
+
+    <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mb-3">
+      <span><i class="bi bi-building me-1 text-primary"></i><strong>Organization:</strong> {{ opp.organization }}</span>
+      <span><i class="bi bi-geo-alt me-1 text-danger"></i><strong>Location:</strong> {{ opp.location }}</span>
+      <span><i class="bi bi-calendar-event me-1 text-danger"></i><strong>Deadline:</strong> {{ opp.deadline if opp.deadline else 'Open / Ongoing' }}</span>
+      <span><i class="bi bi-clock-history me-1"></i><strong>Published:</strong> {{ opp.publication_date if opp.publication_date else 'Recent' }}</span>
+      <span><i class="bi bi-arrow-repeat me-1 text-success"></i><strong>Last Updated:</strong> {{ opp.last_updated_date if opp.last_updated_date else (opp.publication_date or 'Recently verified') }}</span>
+    </div>
+
+    <!-- Match Reason Callout -->
+    <div class="p-2 px-3 rounded bg-light border small text-secondary d-flex align-items-center gap-2">
+      <i class="bi bi-lightbulb-fill text-warning"></i>
+      <span><strong>Why SunoLocal matched this for you:</strong> {{ match_info.explanation }}</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Left Column: Audio Briefing & AI Structured Summary -->
+    <div class="col-lg-7">
+      
+      <!-- Feature 6: Dedicated Audio Player Widget -->
+      <div class="card card-sunolocal p-4 mb-4 border-primary shadow-sm" style="background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <div class="brand-icon" style="width: 36px; height: 36px; font-size: 1.15rem;">
+              <i class="bi bi-headphones"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-0">Audio Briefing (Web Speech TTS)</h5>
+              <span class="text-muted small">Dual-Language Speech Synthesis • <strong id="player-lang-label">{{ current_lang }}</strong></span>
+            </div>
+          </div>
+          
+          <!-- Separate Language Selector -->
+          <div class="btn-group btn-group-sm" role="group" aria-label="Audio Language Selection">
+            <button type="button" class="btn {{ 'btn-primary' if current_lang == 'English' else 'btn-outline-primary' }} audio-lang-toggle" data-lang="English">
+              <i class="bi bi-translate me-1"></i> English (en-IN)
+            </button>
+            <button type="button" class="btn {{ 'btn-primary' if current_lang == 'Kannada' else 'btn-outline-primary' }} audio-lang-toggle" data-lang="Kannada">
+              <i class="bi bi-volume-up-fill me-1"></i> ಕನ್ನಡ (kn-IN)
+            </button>
+          </div>
+        </div>
+
+        <p class="small text-secondary mb-3">
+          Listen to an accessible, simplified audio summary designed for on-the-go students.
+        </p>
+
+        <!-- Player Controls Row -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-white rounded-3 border mb-3">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Play / Pause Button -->
+            <button id="detail-play-btn" class="btn btn-primary-custom px-4 py-2 d-flex align-items-center gap-2">
+              <i class="bi bi-play-circle-fill fs-5"></i>
+              <span id="detail-play-label">Play Audio Briefing</span>
+            </button>
+
+            <!-- Stop Button -->
+            <button id="detail-stop-btn" class="btn btn-outline-danger py-2 px-3 d-flex align-items-center gap-1" title="Stop Audio">
+              <i class="bi bi-stop-circle fs-5"></i>
+              <span>Stop</span>
+            </button>
+          </div>
+
+          <!-- Speed Controls -->
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted fw-bold">Speed:</span>
+            <select id="detail-rate-select" class="form-select form-select-sm" style="width: auto;">
+              <option value="0.85">0.8x (Slower)</option>
+              <option value="1.0" selected>1.0x (Normal)</option>
+              <option value="1.25">1.2x (Faster)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inline Voice Diagnostic Strip -->
+        <div class="p-2 px-3 rounded-2 bg-light border small d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-cpu text-primary"></i>
+            <span>Engine: <strong>Web Speech API (speechSynthesis)</strong></span>
+            <span class="text-muted">|</span>
+            <span id="inline-voice-status" class="badge bg-secondary">Detecting voices...</span>
+          </div>
+          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold small text-primary" data-bs-toggle="modal" data-bs-target="#voiceDiagnosticModal">
+            <i class="bi bi-gear-fill me-1"></i> Voice Diagnostics & Setup
+          </button>
+        </div>
+
+        <!-- Hidden/Toggleable narration transcript for accessibility -->
+        <div>
+          <div class="d-flex justify-content-between align-items-center">
+            <button class="btn btn-link btn-sm p-0 text-decoration-none small text-muted" type="button" data-bs-toggle="collapse" data-bs-target="#transcriptCollapse">
+              <i class="bi bi-card-text me-1"></i> View Audio Narration Script &darr;
+            </button>
+            <span class="badge bg-light text-muted border small" id="transcript-lang-badge">{{ current_lang }} Script</span>
+          </div>
+          <div class="collapse mt-2" id="transcriptCollapse">
+            <div class="p-3 bg-light rounded small border text-secondary" id="detail-speech-text" style="font-family: inherit; line-height: 1.6;">
+              {{ summary.speech_text }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4: AI Structured Summary (What, Who, Requirements, Dates, How to Apply) -->
+      <div class="card card-sunolocal p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-cpu-fill text-primary"></i> Simplified Understanding
+          </h4>
+          <span class="badge bg-light text-muted border small">
+            {{ summary.provider }}
+          </span>
+        </div>
+
+        <p class="text-muted small mb-4">
+          Complex circular text processed into 6 clear questions for students.
+        </p>
+
+        <!-- 1. What is this opportunity? -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle-fill text-primary"></i> 1. What is this opportunity?
+          </h6>
+          <p class="small text-secondary ps-4 mb-0">
+            {{ summary.what_is_it }}
+          </p>
+        </div>
+
+        <!-- 2. Who Can Benefit? (Section 2 Requirement) -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-people-fill text-primary"></i> 2. Who Can Benefit?
+          </h6>
+          <p class="small text-secondary ps-4 mb-0">
+            {{ opp.who_can_benefit if opp.who_can_benefit else (summary.who_can_benefit or 'Citizens, students, farmers, or job seekers meeting the criteria.') }}
+          </p>
+        </div>
+
+        <!-- 3. Who can apply (Eligibility)? -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-person-badge-fill text-success"></i> 3. Who can apply (Eligibility Conditions)?
+          </h6>
+          <p class="small text-secondary ps-4 mb-0">
+            {{ opp.eligibility if opp.eligibility else summary.who_can_apply }}
+          </p>
+        </div>
+
+        <!-- 4. Requirements & Documents -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-check-fill text-warning"></i> 4. Important Requirements & Required Documents
+          </h6>
+          <p class="small text-secondary ps-4 mb-0">
+            {{ opp.requirements if opp.requirements else summary.requirements }}
+          </p>
+        </div>
+
+        <!-- 5. Important Dates & Deadlines -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-calendar2-week-fill text-danger"></i> 5. Important Dates & Deadlines
+          </h6>
+          <div class="small text-secondary ps-4 mb-0">
+            <div><strong>Application Deadline:</strong> {{ opp.deadline if opp.deadline else 'Open / Ongoing application window' }}</div>
+            <div><strong>Published Date:</strong> {{ opp.publication_date if opp.publication_date else 'Recent' }}</div>
+            <div><strong>Last Updated Date:</strong> {{ opp.last_updated_date if opp.last_updated_date else (opp.publication_date or 'Recently verified') }}</div>
+          </div>
+        </div>
+
+        <!-- 6. How to Apply -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-send-check-fill text-info"></i> 6. Application or Participation Procedure
+          </h6>
+          <p class="small text-secondary ps-4 mb-0">
+            {{ opp.how_to_apply if opp.how_to_apply else summary.how_to_apply }}
+          </p>
+        </div>
+
+        <!-- 7. Official Source & Website Link -->
+        <div>
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-link-45deg text-dark"></i> 7. Official Source & Website Link
+          </h6>
+          <p class="small text-secondary ps-4 mb-0">
+            {% if opp.source_url %}
+              <strong>{{ opp.source_name }}:</strong> 
+              <a href="{{ opp.source_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                {{ opp.source_url }} <i class="bi bi-box-arrow-up-right ms-1"></i>
+              </a>
+            {% else %}
+              {{ summary.original_source }}
+            {% endif %}
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Raw Full Notification Description -->
+      <div class="card card-sunolocal p-4">
+        <h5 class="fw-bold mb-2">Original Notification Text</h5>
+        <p class="small text-muted mb-0" style="white-space: pre-line;">
+          {{ opp.full_description }}
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Feature 5: TrustCheck & Action Center -->
+    <div class="col-lg-5">
+      
+      <!-- Feature 5: TRUSTCHECK PANEL -->
+      <div class="card card-sunolocal p-4 mb-4 border-0 shadow-sm" style="background: #ffffff;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <div class="brand-icon bg-warning text-dark" style="width: 34px; height: 34px; font-size: 1.1rem;">
+              <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-0">TRUSTCHECK</h5>
+              <span class="text-muted small">Information Quality & Source Audit</span>
+            </div>
+          </div>
+          <span class="trust-badge {{ trust_info.badge_class }}">
+            {{ trust_info.status }}
+          </span>
+        </div>
+
+        <p class="small text-muted mb-3">
+          Automated heuristic assessment to help students avoid unverified circulars, phantom deadlines, and scam forms.
+        </p>
+
+        <!-- Trust Signals Breakdown -->
+        <div class="trustcheck-box mb-3">
+          <h6 class="fw-bold small text-uppercase text-secondary mb-2">Audit Signals:</h6>
+
+          <!-- Positive Signals -->
+          {% for signal in trust_info.positive_signals %}
+            <div class="trustcheck-signal text-success">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>{{ signal }}</span>
+            </div>
+          {% endfor %}
+
+          <!-- Warning Signals -->
+          {% for warning in trust_info.warnings %}
+            <div class="trustcheck-signal text-danger">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ warning }}</span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Metadata Table -->
+        <div class="table-responsive small mb-3">
+          <table class="table table-sm table-borderless mb-0">
+            <tbody>
+              <tr>
+                <td class="text-muted" style="width: 40%;">Source Link:</td>
+                <td>
+                  {% if trust_info.source_url %}
+                    <a href="{{ trust_info.source_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-truncate d-inline-block" style="max-width: 200px;">
+                      {{ trust_info.source_url }} <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                  {% else %}
+                    <span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i>No Source Link</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="text-muted">Domain Type:</td>
+                <td>
+                  {% if trust_info.is_official_domain %}
+                    <span class="badge bg-success-subtle text-success">Official Institutional (.gov/.ac/.res)</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark border">External Domain</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="text-muted">Publication Date:</td>
+                <td>{{ trust_info.publication_date if trust_info.publication_date else 'Not stated' }}</td>
+              </tr>
+              <tr>
+                <td class="text-muted">Last Checked:</td>
+                <td>{{ trust_info.last_checked_date }}</td>
+              </tr>
+              <tr>
+                <td class="text-muted">Official Verification:</td>
+                <td>
+                  {% if trust_info.is_officially_verified %}
+                    <span class="badge bg-success text-white">Manual Verified</span>
+                  {% else %}
+                    <span class="badge bg-secondary text-white">Automated Heuristic Audit</span>
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mandatory Disclaimer Alert -->
+        <div class="alert alert-warning small p-2 mb-0 d-flex align-items-start gap-2">
+          <i class="bi bi-info-circle-fill fs-6 mt-1 flex-shrink-0"></i>
+          <div>
+            <strong>Trust & Safety Rule:</strong> {{ trust_info.disclaimer }}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Box: ACT (Apply Now / Save / Share) -->
+      <div class="card card-sunolocal p-4 mb-4 text-center">
+        <h5 class="fw-bold mb-3">Take Action on this Opportunity</h5>
+
+        {% if trust_info.source_url %}
+          <a href="{{ trust_info.source_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary-custom btn-lg w-100 mb-2 py-3 fw-bold">
+            <i class="bi bi-box-arrow-up-right me-2"></i> Open Official Source Portal
+          </a>
+          <span class="small text-muted d-block mb-3">Direct external link to {{ trust_info.source_name }}</span>
+        {% else %}
+          <div class="alert alert-danger small mb-3">
+            <i class="bi bi-slash-circle me-1"></i> Cannot apply directly: Official source URL is missing from this posting.
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary w-50 btn-bookmark-toggle {{ 'saved' if opp.id in saved_ids else '' }}" data-id="{{ opp.id }}">
+            <i class="bi {{ 'bi-bookmark-fill text-primary' if opp.id in saved_ids else 'bi-bookmark' }} me-1"></i>
+            {{ 'Saved' if opp.id in saved_ids else 'Save for Later' }}
+          </button>
+          <button class="btn btn-outline-secondary w-50" onclick="navigator.clipboard.writeText(window.location.href); alert('Opportunity link copied to clipboard!');">
+            <i class="bi bi-share me-1"></i> Share Link
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const playBtn = document.getElementById("detail-play-btn");
+  const playLabel = document.getElementById("detail-play-label");
+  const stopBtn = document.getElementById("detail-stop-btn");
+  const rateSelect = document.getElementById("detail-rate-select");
+  const speechTextElem = document.getElementById("detail-speech-text");
+  const inlineVoiceStatus = document.getElementById("inline-voice-status");
+  const playerLangLabel = document.getElementById("player-lang-label");
+  const transcriptLangBadge = document.getElementById("transcript-lang-badge");
+
+  let activeLang = "{{ current_lang }}";
+  let activeTitle = "{{ opp.title }}";
+  let activeSpeechText = speechTextElem ? speechTextElem.innerText.trim() : "";
+  const oppId = {{ opp.id }};
+
+  // Update inline voice diagnostic status pill
+  function updateInlineStatus(diag) {
+    if (!inlineVoiceStatus) return;
+    if (activeLang === "Kannada") {
+      if (diag.isKannadaAvailable) {
+        inlineVoiceStatus.className = "badge bg-success";
+        inlineVoiceStatus.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> kn-IN Voice Ready (${diag.kannadaVoice.name})`;
+      } else {
+        inlineVoiceStatus.className = "badge bg-danger";
+        inlineVoiceStatus.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> No kn-IN Voice on this device`;
+      }
+    } else {
+      if (diag.englishVoice) {
+        inlineVoiceStatus.className = "badge bg-info text-dark";
+        inlineVoiceStatus.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Voice: ${diag.englishVoice.name}`;
+      } else {
+        inlineVoiceStatus.className = "badge bg-secondary";
+        inlineVoiceStatus.textContent = "System Default Voice";
+      }
+    }
+  }
+
+  // Subscribe to live voice changes
+  window.sunoVoice.onVoiceChange(updateInlineStatus);
+
+  // Language selection buttons (English vs Kannada)
+  document.querySelectorAll(".audio-lang-toggle").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const targetLang = btn.getAttribute("data-lang");
+      if (targetLang === activeLang) return;
+
+      // Update UI active buttons
+      document.querySelectorAll(".audio-lang-toggle").forEach(b => {
+        if (b.getAttribute("data-lang") === targetLang) {
+          b.className = "btn btn-primary audio-lang-toggle";
+        } else {
+          b.className = "btn btn-outline-primary audio-lang-toggle";
+        }
+      });
+
+      activeLang = targetLang;
+      if (playerLangLabel) playerLangLabel.textContent = targetLang;
+      if (transcriptLangBadge) transcriptLangBadge.textContent = `${targetLang} Script`;
+
+      // Stop current playback
+      window.sunoVoice.stop();
+
+      // Show loading in speech text
+      if (speechTextElem) {
+        speechTextElem.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Loading ' + targetLang + ' briefing text...';
+      }
+
+      // Fetch localized speech text from backend
+      try {
+        const res = await fetch(`/api/listen/${oppId}?lang=${encodeURIComponent(targetLang)}`);
+        const data = await res.json();
+        if (data.success && data.speech_text) {
+          activeSpeechText = data.speech_text;
+          activeTitle = data.title || "{{ opp.title }}";
+          if (speechTextElem) speechTextElem.innerText = activeSpeechText;
+        }
+      } catch (err) {
+        console.error("Failed to load language text:", err);
+      }
+
+      // Update voice status for the new language
+      updateInlineStatus(window.sunoVoice.getVoiceDiagnostics());
+
+      // If user selected Kannada and no Kannada voice is available, display notice
+      if (targetLang === "Kannada" && !window.sunoVoice.getKannadaVoice()) {
+        window.sunoVoice.showNotice(window.sunoVoice.KANNADA_MISSING_MESSAGE, "danger", true);
+      } else {
+        window.sunoVoice.hideNotice();
+      }
+    });
+  });
+
+  // Play / Pause / Resume Button
+  if (playBtn) {
+    playBtn.addEventListener("click", () => {
+      if (window.sunoVoice.isPlaying && !window.sunoVoice.isPaused) {
+        window.sunoVoice.pause();
+      } else if (window.sunoVoice.isPaused) {
+        window.sunoVoice.resume();
+      } else {
+        window.sunoVoice.speak(activeSpeechText, activeLang, activeTitle, (res) => {
+          if (res && res.error === "kannada_voice_missing") {
+            // Already handled in speak()
+          }
+        });
+      }
+    });
+  }
+
+  // Stop Button
+  if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+      window.sunoVoice.stop();
+    });
+  }
+
+  // Speed Rate Select
+  if (rateSelect) {
+    rateSelect.addEventListener("change", (e) => {
+      window.sunoVoice.setRate(e.target.value);
+    });
+  }
+});
+</script>
+{% endblock %}

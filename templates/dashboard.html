@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}My Hub - SunoLocal Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Notification / Alerts Section (if triggered) -->
+  {% if show_notifications and notifications_list %}
+    <div class="card card-sunolocal p-4 mb-4 border-warning shadow-sm" style="background: #fffdf5;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0 d-flex align-items-center gap-2 text-dark">
+          <i class="bi bi-bell-fill text-warning"></i> Your Alerts & Deadline Reminders
+        </h4>
+        <span class="badge bg-warning text-dark">{{ notifications_list|length }} Notifications</span>
+      </div>
+      <p class="text-muted small mb-3">
+        Real-time reminders for actual deadlines on your saved notices and opportunities matching your preferences.
+      </p>
+      <div class="d-flex flex-column gap-2">
+        {% for note in notifications_list %}
+          <div class="p-3 rounded-3 bg-white border d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-bold small text-dark">{{ note.title }}</div>
+              <div class="text-muted small">{{ note.body }}</div>
+              <div class="text-secondary" style="font-size: 0.7rem;">{{ note.created_at }}</div>
+            </div>
+            {% if note.link %}
+              <a href="{{ note.link }}" class="btn btn-sm btn-outline-primary px-3 flex-shrink-0">
+                View &rarr;
+              </a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Welcome Banner & Preferences Summary -->
+  <div class="card card-sunolocal p-4 mb-4 border-0 bg-white shadow-sm">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+            <i class="bi bi-person-check-fill me-1"></i> Personalized Profile Active
+          </span>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-capitalize">
+            Role: {{ user_prefs.get('user_type', 'Student') }}
+          </span>
+        </div>
+        <h2 class="fw-bold mb-1">Namaskara! Welcome to Your {{ user_prefs.location }} Hub</h2>
+        <p class="text-muted small mb-3">
+          Opportunities below are dynamically scored and prioritized for your <strong>{{ user_prefs.location }}</strong> ({{ user_prefs.education_level }}) profile.
+        </p>
+
+        <!-- Current Preferences Chips -->
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span class="small fw-bold text-muted me-1">Your Focus:</span>
+          <span class="badge bg-light text-dark border">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ user_prefs.location }}
+          </span>
+          <span class="badge bg-light text-dark border">
+            <i class="bi bi-translate text-primary me-1"></i>{{ user_prefs.language }} Voice
+          </span>
+          {% for interest in user_prefs.interests[:4] %}
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+              {{ interest }}
+            </span>
+          {% endfor %}
+          {% if user_prefs.interests|length > 4 %}
+            <span class="badge bg-light text-muted border">+{{ user_prefs.interests|length - 4 }} more</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="{{ url_for('preferences') }}" class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-pill">
+          <i class="bi bi-pencil-square me-1"></i> Edit Preferences
+        </a>
+        <a href="{{ url_for('discovery') }}" class="btn btn-primary-custom btn-sm px-3 py-2 rounded-pill ms-2">
+          <i class="bi bi-compass me-1"></i> Discover All
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Counters -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+      <div class="card card-sunolocal p-3 text-center border shadow-sm">
+        <div class="text-primary fs-3 fw-bold">{{ recommendations|length }}</div>
+        <div class="small text-muted fw-semibold">Top Matched Items</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card card-sunolocal p-3 text-center border shadow-sm">
+        <div class="text-danger fs-3 fw-bold">{{ upcoming_deadlines|length }}</div>
+        <div class="small text-muted fw-semibold">Upcoming Deadlines</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card card-sunolocal p-3 text-center border shadow-sm">
+        <div class="text-success fs-3 fw-bold">{{ saved_items|length }}</div>
+        <div class="small text-muted fw-semibold">Bookmarked Items</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card card-sunolocal p-3 text-center border shadow-sm">
+        <div class="text-dark fs-3 fw-bold">{{ total_opportunities_count }}</div>
+        <div class="small text-muted fw-semibold">Catalog Database</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- Left Column: Recommended Opportunities -->
+    <div class="col-lg-8">
+      
+      <!-- Recommended Feed -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="fw-bold mb-0">Recommended for You</h4>
+          <span class="text-muted small">Ranked using transparent interest, location, and urgency weighting</span>
+        </div>
+        <a href="{{ url_for('discovery', sort='relevance') }}" class="small text-decoration-none fw-semibold">
+          Explore all &rarr;
+        </a>
+      </div>
+
+      <div class="d-flex flex-column gap-3 mb-4">
+        {% for item in recommendations %}
+          <div class="card card-sunolocal p-3 p-md-4 border shadow-sm">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div class="d-flex flex-wrap align-items-center gap-1">
+                {% if item.is_sample == 0 %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.65rem;">
+                    <i class="bi bi-patch-check-fill me-1"></i> VERIFIED OFFICIAL
+                  </span>
+                {% else %}
+                  <span class="badge-sample">[SAMPLE DATA]</span>
+                {% endif %}
+                <span class="badge-category">{{ item.category }}</span>
+                <span class="badge-location"><i class="bi bi-geo-alt"></i> {{ item.location }}</span>
+              </div>
+              <span class="match-score-badge {{ item.match_badge_class }}" title="{{ item.match_explanation }}">
+                <i class="bi bi-stars"></i> {{ item.match_score }}% Match
+              </span>
+            </div>
+
+            <h5 class="fw-bold mb-1">
+              <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="text-dark text-decoration-none">
+                {{ item.title }}
+              </a>
+            </h5>
+
+            <div class="text-muted small mb-2">
+              <i class="bi bi-building me-1 text-primary"></i> {{ item.organization }}
+            </div>
+
+            <p class="small text-muted mb-2">
+              {{ item.short_description }}
+            </p>
+
+            {% if item.who_can_benefit %}
+              <div class="p-2 mb-2 rounded bg-light border small text-secondary">
+                <strong class="text-dark"><i class="bi bi-people-fill text-primary me-1"></i> Beneficiaries:</strong> {{ item.who_can_benefit }}
+              </div>
+            {% endif %}
+
+            <!-- Algorithm Explanation -->
+            <div class="p-2 rounded bg-light border mb-3 small d-flex align-items-center gap-2 text-secondary">
+              <i class="bi bi-info-circle text-primary"></i>
+              <span><strong>Recommendation match:</strong> {{ item.match_explanation }}</span>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
+              <div class="small text-muted">
+                <i class="bi bi-calendar-event me-1 text-danger"></i>
+                Deadline: <strong>{{ item.deadline if item.deadline else 'Rolling / Open' }}</strong>
+              </div>
+
+              <div class="d-flex align-items-center gap-2">
+                <!-- English and Kannada Listen Buttons -->
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-listen btn-listen-trigger" 
+                          data-id="{{ item.id }}" 
+                          data-lang="English"
+                          data-title="{{ item.title }}"
+                          title="Listen in English">
+                    <i class="bi bi-headphones"></i> EN
+                  </button>
+                  <button class="btn btn-listen btn-listen-trigger" 
+                          data-id="{{ item.id }}" 
+                          data-lang="Kannada"
+                          data-title="{{ item.kannada_title or item.title }}"
+                          title="ಕನ್ನಡದಲ್ಲಿ ಕೇಳಿ (Listen in Kannada)">
+                    <i class="bi bi-volume-up-fill text-warning"></i> ಕನ್ನಡ
+                  </button>
+                </div>
+
+                <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="btn btn-sm btn-outline-primary px-3">
+                  Details &rarr;
+                </a>
+              </div>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right Column: Deadlines, Saved Preview & Recent Views -->
+    <div class="col-lg-4">
+      
+      <!-- Actual Upcoming Deadlines -->
+      <div class="card card-sunolocal p-3 mb-4 border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 d-flex align-items-center gap-2 text-danger">
+            <i class="bi bi-alarm-fill"></i> Closing Soon
+          </h5>
+          <span class="badge bg-danger-subtle text-danger small">Actual Deadlines</span>
+        </div>
+
+        {% if upcoming_deadlines %}
+          <div class="d-flex flex-column gap-2">
+            {% for d_item in upcoming_deadlines %}
+              <div class="p-2 border rounded-2 bg-light">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="badge bg-white text-dark border small text-truncate" style="max-width: 140px;">
+                    {{ d_item.category }}
+                  </span>
+                  <span class="badge {{ 'bg-danger text-white' if d_item.days_left <= 7 else 'bg-warning-subtle text-warning-emphasis' }}">
+                    {{ d_item.days_left }} days left
+                  </span>
+                </div>
+                <h6 class="fw-bold mb-1 small text-truncate">
+                  <a href="{{ url_for('opportunity_detail', id=d_item.id) }}" class="text-dark text-decoration-none">
+                    {{ d_item.title }}
+                  </a>
+                </h6>
+                <div class="d-flex justify-content-between align-items-center small text-muted">
+                  <span>{{ d_item.location }}</span>
+                  <span class="fw-semibold">{{ d_item.deadline }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small text-muted mb-0">No active deadlines ending in the immediate window.</p>
+        {% endif %}
+      </div>
+
+      <!-- Saved Opportunities Preview -->
+      <div class="card card-sunolocal p-3 mb-4 border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-bookmark-star-fill text-primary"></i> Saved Bookmarks
+          </h5>
+          <a href="{{ url_for('saved_opportunities') }}" class="small text-decoration-none">
+            View all ({{ saved_count }})
+          </a>
+        </div>
+
+        {% if saved_items %}
+          <div class="d-flex flex-column gap-2">
+            {% for s_item in saved_items %}
+              <div class="p-2 border rounded-2 bg-white">
+                <h6 class="fw-bold mb-1 small text-truncate">
+                  <a href="{{ url_for('opportunity_detail', id=s_item.id) }}" class="text-dark text-decoration-none">
+                    {{ s_item.title }}
+                  </a>
+                </h6>
+                <div class="d-flex justify-content-between align-items-center small text-muted">
+                  <span>{{ s_item.category }}</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-sm btn-link text-primary p-0 btn-listen-trigger me-2" 
+                            data-id="{{ s_item.id }}" 
+                            data-lang="English"
+                            data-title="{{ s_item.title }}">
+                      <i class="bi bi-volume-up"></i> EN
+                    </button>
+                    <button class="btn btn-sm btn-link text-warning-emphasis p-0 btn-listen-trigger" 
+                            data-id="{{ s_item.id }}" 
+                            data-lang="Kannada"
+                            data-title="{{ s_item.kannada_title or s_item.title }}">
+                      <i class="bi bi-volume-up-fill"></i> KN
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small text-muted mb-0">You haven't bookmarked any opportunities yet. Click the bookmark icon on any card to save it here.</p>
+        {% endif %}
+      </div>
+
+      <!-- Recently Viewed -->
+      <div class="card card-sunolocal p-3 border shadow-sm">
+        <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-clock-history text-secondary"></i> Recently Viewed
+        </h5>
+        {% if recently_viewed %}
+          <div class="d-flex flex-column gap-2">
+            {% for rv in recently_viewed %}
+              <div class="p-2 border rounded-2 bg-white">
+                <h6 class="fw-bold mb-1 small text-truncate">
+                  <a href="{{ url_for('opportunity_detail', id=rv.id) }}" class="text-dark text-decoration-none">
+                    {{ rv.title }}
+                  </a>
+                </h6>
+                <div class="small text-muted d-flex justify-content-between align-items-center">
+                  <span>{{ rv.organization }}</span>
+                  <a href="{{ url_for('opportunity_detail', id=rv.id) }}" class="text-decoration-none small">Re-open &rarr;</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small text-muted mb-0">Open any announcement detail page to track your recent history.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

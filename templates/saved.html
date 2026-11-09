@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}My Saved Opportunities - SunoLocal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">My Saved Opportunities & Bookmarks</h2>
+      <p class="text-muted small mb-0">
+        Review, listen to audio briefings, and monitor real deadlines on your saved notices.
+      </p>
+    </div>
+    <a href="{{ url_for('discovery') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+      <i class="bi bi-plus-circle me-1"></i> Discover More
+    </a>
+  </div>
+
+  {% if saved_list %}
+    <div class="row g-4">
+      {% for item in saved_list %}
+        <div class="col-lg-6">
+          <div class="card card-sunolocal p-3 p-md-4 h-100 d-flex flex-column border shadow-sm">
+            
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div class="d-flex flex-wrap align-items-center gap-1">
+                {% if item.is_sample == 0 %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.65rem;">
+                    <i class="bi bi-patch-check-fill me-1"></i> VERIFIED OFFICIAL
+                  </span>
+                {% else %}
+                  <span class="badge-sample">[SAMPLE DATA]</span>
+                {% endif %}
+                <span class="badge-category">{{ item.category }}</span>
+                <span class="badge-location"><i class="bi bi-geo-alt"></i> {{ item.location }}</span>
+              </div>
+              <span class="match-score-badge {{ item.match_badge_class }}">
+                <i class="bi bi-stars"></i> {{ item.match_score }}% Match
+              </span>
+            </div>
+
+            <h5 class="fw-bold mb-1">
+              <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="text-dark text-decoration-none">
+                {{ item.title }}
+              </a>
+            </h5>
+
+            <div class="text-muted small mb-2">
+              <i class="bi bi-building me-1 text-primary"></i> {{ item.organization }}
+            </div>
+
+            {% if item.kannada_title and user_prefs.language == 'Kannada' %}
+              <div class="p-2 mb-2 rounded bg-warning-subtle text-dark small" style="font-family: 'Noto Sans Kannada', sans-serif;">
+                <strong>ಕನ್ನಡ:</strong> {{ item.kannada_title }}
+              </div>
+            {% endif %}
+
+            <p class="small text-muted flex-grow-1 mb-2">
+              {{ item.short_description }}
+            </p>
+
+            {% if item.who_can_benefit %}
+              <div class="p-2 mb-2 rounded bg-light border small text-secondary">
+                <strong class="text-dark"><i class="bi bi-people-fill text-primary me-1"></i> Beneficiaries:</strong> {{ item.who_can_benefit }}
+              </div>
+            {% endif %}
+
+            <!-- Deadline Reminder Strip (Section 7) -->
+            <div class="bg-light p-2 rounded small text-secondary mb-3 d-flex justify-content-between align-items-center">
+              <div>
+                <i class="bi bi-calendar-event me-1 text-danger"></i>
+                Deadline: <strong>{{ item.deadline if item.deadline else 'Open / Rolling' }}</strong>
+                {% if item.deadline and item.deadline >= today_str %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis ms-1">Active Deadline</span>
+                {% elif item.deadline and item.deadline < today_str %}
+                  <span class="badge bg-danger-subtle text-danger ms-1">Passed</span>
+                {% endif %}
+              </div>
+              <span class="small text-muted">
+                Saved: {{ item.saved_at[:10] if item.saved_at else 'Recently' }}
+              </span>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top">
+              <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-listen btn-listen-trigger" 
+                        data-id="{{ item.id }}" 
+                        data-lang="English"
+                        data-title="{{ item.title }}"
+                        title="Listen in English">
+                  <i class="bi bi-headphones"></i> EN
+                </button>
+                <button class="btn btn-listen btn-listen-trigger" 
+                        data-id="{{ item.id }}" 
+                        data-lang="Kannada"
+                        data-title="{{ item.kannada_title or item.title }}"
+                        title="ಕನ್ನಡದಲ್ಲಿ ಕೇಳಿ (Listen in Kannada)">
+                  <i class="bi bi-volume-up-fill text-warning"></i> ಕನ್ನಡ
+                </button>
+              </div>
+
+              <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="btn btn-sm btn-outline-primary px-3">
+                  View Details &rarr;
+                </a>
+                <button class="btn btn-sm btn-outline-danger btn-bookmark-toggle saved" 
+                        data-id="{{ item.id }}" 
+                        title="Remove from saved">
+                  <i class="bi bi-trash"></i> Remove
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-sunolocal p-5 text-center bg-white border shadow-sm">
+      <i class="bi bi-bookmark text-muted display-4 mb-3"></i>
+      <h4 class="fw-bold mb-2">No Saved Opportunities Yet</h4>
+      <p class="text-muted small mb-4 mx-auto" style="max-width: 500px;">
+        When browsing notices or search results, click the bookmark icon on any opportunity card to save it here for easy review and deadline tracking.
+      </p>
+      <div>
+        <a href="{{ url_for('discovery') }}" class="btn btn-primary-custom rounded-pill px-4">
+          <i class="bi bi-compass me-1"></i> Start Discovering
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

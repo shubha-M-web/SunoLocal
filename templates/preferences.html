@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Personalization & Preferences - SunoLocal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      
+      <div class="card card-sunolocal p-4 p-md-5 border-0 shadow-lg">
+        <div class="text-center mb-4">
+          <div class="hero-pill mb-2">
+            <i class="bi bi-sliders text-primary"></i> Step 1: Personalization
+          </div>
+          <h2 class="fw-bold mb-2">Tailor Your Local Information Hub</h2>
+          <p class="text-muted small mx-auto" style="max-width: 650px;">
+            SunoLocal filters out irrelevant noise and prioritizes verified announcements matching your exact location, profession, language, and interests.
+          </p>
+        </div>
+
+        <form action="{{ url_for('preferences') }}" method="POST">
+          
+          <!-- 1. Location Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-geo-alt-fill text-danger"></i> 1. Select Your Primary Location / District
+            </label>
+            <div class="row g-2 g-md-3">
+              {% for loc in available_locations %}
+                <div class="col-sm-6 col-md-4">
+                  <input type="radio" class="btn-check" name="location" id="loc-{{ loop.index }}" value="{{ loc }}" {% if current_prefs.location == loc %}checked{% endif %}>
+                  <label class="btn btn-outline-secondary w-100 py-3 text-center d-flex flex-column align-items-center gap-1 rounded-3 h-100" for="loc-{{ loop.index }}">
+                    <i class="bi bi-pin-map fs-4 text-primary"></i>
+                    <span class="fw-bold">{{ loc }}</span>
+                    {% if loc == 'Mysuru' %}
+                      <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">Primary Hub</span>
+                    {% elif 'Karnataka' in loc %}
+                      <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Statewide</span>
+                    {% endif %}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="form-text small mt-2">
+              Notices in your selected location receive priority weighting in personalized discovery feeds.
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- 2. Language Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-translate text-primary"></i> 2. Audio Briefing & Reading Language
+            </label>
+            <div class="row g-3">
+              {% for lang in available_languages[:2] %}
+                <div class="col-sm-6">
+                  <input type="radio" class="btn-check" name="language" id="lang-{{ loop.index }}" value="{{ lang }}" {% if current_prefs.language == lang %}checked{% endif %}>
+                  <label class="btn btn-outline-secondary w-100 py-3 text-center d-flex flex-column align-items-center gap-1 rounded-3" for="lang-{{ loop.index }}">
+                    <i class="bi bi-volume-up fs-4 text-success"></i>
+                    <span class="fw-bold">{{ lang }}</span>
+                    <span class="small text-muted">
+                      {% if lang == 'Kannada' %}
+                        ಕನ್ನಡ ಧ್ವನಿ ಸಾರಾಂಶ ಮತ್ತು ಪಠ್ಯ
+                      {% else %}
+                        English Voice Narration & Summary
+                      {% endif %}
+                    </span>
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- 3. Profession / User Profile -->
+          <div class="mb-4">
+            <label class="form-label fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-person-badge-fill text-info"></i> 3. Your Profession or Role
+            </label>
+            <div class="row g-2">
+              <div class="col-md-4 col-6">
+                <input type="radio" class="btn-check" name="user_type" id="ut-student" value="student" {% if current_prefs.get('user_type') == 'student' or not current_prefs.get('user_type') %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 p-2 text-start d-flex align-items-center gap-2 rounded-3" for="ut-student">
+                  <i class="bi bi-mortarboard fs-5 text-primary"></i>
+                  <div>
+                    <div class="fw-bold small">Student</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">ವಿದ್ಯಾರ್ಥಿ</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="col-md-4 col-6">
+                <input type="radio" class="btn-check" name="user_type" id="ut-farmer" value="farmer" {% if current_prefs.get('user_type') == 'farmer' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 p-2 text-start d-flex align-items-center gap-2 rounded-3" for="ut-farmer">
+                  <i class="bi bi-flower1 fs-5 text-success"></i>
+                  <div>
+                    <div class="fw-bold small">Farmer</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">ರೈತ / ಕೃಷಿಕ</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="col-md-4 col-6">
+                <input type="radio" class="btn-check" name="user_type" id="ut-jobseeker" value="job_seeker" {% if current_prefs.get('user_type') == 'job_seeker' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 p-2 text-start d-flex align-items-center gap-2 rounded-3" for="ut-jobseeker">
+                  <i class="bi bi-briefcase fs-5 text-purple"></i>
+                  <div>
+                    <div class="fw-bold small">Job Seeker</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">ಉದ್ಯೋಗಾಕಾಂಕ್ಷಿ</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="col-md-4 col-6">
+                <input type="radio" class="btn-check" name="user_type" id="ut-pro" value="professional" {% if current_prefs.get('user_type') == 'professional' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 p-2 text-start d-flex align-items-center gap-2 rounded-3" for="ut-pro">
+                  <i class="bi bi-laptop fs-5 text-dark"></i>
+                  <div>
+                    <div class="fw-bold small">Professional</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">ಉದ್ಯೋಗಿ / ಐಟಿ</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="col-md-4 col-6">
+                <input type="radio" class="btn-check" name="user_type" id="ut-citizen" value="citizen" {% if current_prefs.get('user_type') == 'citizen' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 p-2 text-start d-flex align-items-center gap-2 rounded-3" for="ut-citizen">
+                  <i class="bi bi-people fs-5 text-warning"></i>
+                  <div>
+                    <div class="fw-bold small">General Citizen</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">ನಾಗರಿಕರು / ಮಹಿಳೆ</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- 4. Interests Selection across ALL 15 Categories -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-bold mb-0">
+                <i class="bi bi-tags-fill text-warning me-1"></i> 4. Select Your Interests & Categories
+              </label>
+              <span class="badge bg-light text-muted border">Select multiple</span>
+            </div>
+            <p class="text-muted small mb-3">Choose any topics you want SunoLocal to track for you.</p>
+
+            <div class="row g-2">
+              {% for cat_name in core_categories %}
+                {% set meta = category_metadata.get(cat_name, {}) %}
+                <div class="col-md-6">
+                  <div class="form-check p-3 border rounded-3 bg-light d-flex align-items-center gap-2">
+                    <input class="form-check-input ms-0 me-2" 
+                           type="checkbox" 
+                           name="interests" 
+                           value="{{ cat_name }}" 
+                           id="cat-int-{{ loop.index }}" 
+                           {% if (cat_name in current_prefs.interests) or (cat_name.lower() in current_prefs.interests) %}checked{% endif %}>
+                    <label class="form-check-label flex-grow-1" for="cat-int-{{ loop.index }}">
+                      <div class="fw-bold small text-dark d-flex align-items-center gap-1">
+                        <i class="bi {{ meta.icon or 'bi-tag-fill' }} text-primary"></i>
+                        {{ cat_name }}
+                      </div>
+                      <div class="text-muted small" style="font-size: 0.75rem; font-family: 'Noto Sans Kannada', sans-serif;">
+                        {{ meta.kannada or '' }}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- 5. Academic / Career Stage -->
+          <div class="mb-4">
+            <label class="form-label fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-mortarboard-fill text-dark"></i> 5. Academic / Career Stage (Optional)
+            </label>
+            <select name="education_level" class="form-select form-select-lg">
+              <option value="Undergraduate (PUC / Diploma / Degree)" {% if 'Undergraduate' in current_prefs.education_level %}selected{% endif %}>
+                Undergraduate (PUC / Diploma / B.A. / B.Sc. / B.Com / B.E.)
+              </option>
+              <option value="Postgraduate (Master's / Ph.D.)" {% if 'Postgraduate' in current_prefs.education_level %}selected{% endif %}>
+                Postgraduate (M.Sc. / M.Tech / MBA / Ph.D.)
+              </option>
+              <option value="Engineering / Tech Student" {% if 'Engineering' in current_prefs.education_level %}selected{% endif %}>
+                Engineering / Tech Student (B.E., B.Tech, MCA, Polytechnic)
+              </option>
+              <option value="Job Seeker / Recent Graduate" {% if 'Job Seeker' in current_prefs.education_level %}selected{% endif %}>
+                Job Seeker / Recent Graduate (2024 - 2026 batches)
+              </option>
+              <option value="High School Student" {% if 'High School' in current_prefs.education_level %}selected{% endif %}>
+                High School / SSLC Student
+              </option>
+              <option value="Other / General Public" {% if 'Other' in current_prefs.education_level %}selected{% endif %}>
+                Other / General Public / Homemaker
+              </option>
+            </select>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary-custom btn-lg py-3 fw-bold">
+              Save Preferences & View My Hub <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

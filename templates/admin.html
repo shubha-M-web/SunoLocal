@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Management - SunoLocal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1"><i class="bi bi-shield-lock text-primary me-2"></i>Admin & Data Management</h2>
+      <p class="text-muted small mb-0">
+        Add, review, and curate local student opportunities. All records are automatically marked with <code>[SAMPLE DATA]</code> for demonstration integrity.
+      </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <!-- Reset Demo Data Button -->
+      <form action="{{ url_for('admin_reset_demo') }}" method="POST" onsubmit="return confirm('Reset database back to the fresh initial demo dataset?');">
+        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Sample Data
+        </button>
+      </form>
+
+      <!-- Jump to Add Form -->
+      <a href="#add-opportunity-card" class="btn btn-primary-custom btn-sm rounded-pill px-3">
+        <i class="bi bi-plus-lg me-1"></i> Add Opportunity
+      </a>
+    </div>
+  </div>
+
+  <!-- Opportunities Table -->
+  <div class="card card-sunolocal p-4 mb-5 bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0">Existing Opportunities ({{ opportunities|length }})</h5>
+      <span class="small text-muted">Safe SQLite Parameterized Operations</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 50px;">ID</th>
+            <th>Title & Organization</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Deadline</th>
+            <th>Source URL</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in opportunities %}
+            <tr>
+              <td><code>#{{ item.id }}</code></td>
+              <td>
+                <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="{{ item.title }}">
+                  {{ item.title }}
+                </div>
+                <div class="text-muted small text-truncate" style="max-width: 250px;">
+                  {{ item.organization }}
+                </div>
+              </td>
+              <td><span class="badge-category">{{ item.category }}</span></td>
+              <td><span class="badge-location">{{ item.location }}</span></td>
+              <td>
+                {% if item.deadline %}
+                  <span class="text-dark">{{ item.deadline }}</span>
+                {% else %}
+                  <span class="text-muted">Rolling / None</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.source_url %}
+                  <a href="{{ item.source_url }}" target="_blank" rel="noopener noreferrer" class="text-primary text-truncate d-inline-block" style="max-width: 150px;">
+                    {{ item.source_url }}
+                  </a>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger">Missing</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <a href="{{ url_for('opportunity_detail', id=item.id) }}" class="btn btn-outline-secondary" title="View Public Page">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{{ url_for('admin_edit', id=item.id) }}" class="btn btn-outline-primary" title="Edit Record">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form action="{{ url_for('admin_delete', id=item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this opportunity?');">
+                    <button type="submit" class="btn btn-outline-danger" title="Delete Record">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add New Opportunity Form -->
+  <div id="add-opportunity-card" class="card card-sunolocal p-4 p-md-5 bg-white border-0 shadow">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <div class="brand-icon" style="width: 32px; height: 32px; font-size: 1rem;">
+        <i class="bi bi-file-earmark-plus"></i>
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0">Add New Opportunity Record</h4>
+        <span class="text-muted small">Validated inputs. Records are saved locally in SQLite instance.</span>
+      </div>
+    </div>
+
+    <form action="{{ url_for('admin_dashboard') }}" method="POST">
+      
+      <div class="row g-3 mb-3">
+        <div class="col-md-8">
+          <label class="form-label fw-bold small">Opportunity Title (English) *</label>
+          <input type="text" name="title" class="form-control" placeholder="e.g. Mysuru Cyber Security Internship Drive [SAMPLE DATA]" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Category *</label>
+          <select name="category" class="form-select" required>
+            {% for cat in available_interests %}
+              <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Kannada Title (Optional)</label>
+          <input type="text" name="kannada_title" class="form-control" placeholder="ಕನ್ನಡ ಶೀರ್ಷಿಕೆ...">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold small">Location *</label>
+          <select name="location" class="form-select" required>
+            {% for loc in available_locations %}
+              <option value="{{ loc }}">{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold small">Publishing Organization *</label>
+          <input type="text" name="organization" class="form-control" placeholder="e.g. Mysore University" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Short Description (for feed cards) *</label>
+        <textarea name="short_description" class="form-control" rows="2" placeholder="Brief summary in 1-2 concise sentences..." required></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Full Description / Gazette Details</label>
+        <textarea name="full_description" class="form-control" rows="4" placeholder="Detailed notification content, stipend, background..."></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small">Kannada Description (Optional)</label>
+        <textarea name="kannada_description" class="form-control" rows="2" placeholder="ಕನ್ನಡ ವಿವರಣೆ..."></textarea>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Eligibility Criteria</label>
+          <input type="text" name="eligibility" class="form-control" placeholder="e.g. Final year B.E. / BCA / B.Sc. students">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Required Documents / Requirements</label>
+          <input type="text" name="requirements" class="form-control" placeholder="e.g. Aadhaar card, college ID, marks card">
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Application Deadline (YYYY-MM-DD)</label>
+          <input type="date" name="deadline" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Publication Date (YYYY-MM-DD)</label>
+          <input type="date" name="publication_date" class="form-control" value="{{ today_str }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Publisher Source Name</label>
+          <input type="text" name="source_name" class="form-control" placeholder="e.g. Dept of Technical Education">
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-8">
+          <label class="form-label fw-bold small">Original Source URL</label>
+          <input type="url" name="source_url" class="form-control" placeholder="https://example.karnataka.gov.in/notice">
+          <div class="form-text small">Leave empty if simulating an unverified social media circular to test TrustCheck.</div>
+        </div>
+        <div class="col-md-4 d-flex align-items-center mt-md-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="is_verified" value="1" id="verifySwitch">
+            <label class="form-check-label fw-semibold small" for="verifySwitch">Mark as Manually Verified</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold small">How to Apply (Steps)</label>
+        <textarea name="how_to_apply" class="form-control" rows="2" placeholder="1. Visit portal, 2. Submit documents..."></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="reset" class="btn btn-outline-secondary px-4">Clear</button>
+        <button type="submit" class="btn btn-primary-custom px-5 fw-bold">
+          <i class="bi bi-save me-1"></i> Save Opportunity
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}
